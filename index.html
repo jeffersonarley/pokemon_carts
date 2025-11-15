@@ -8,25 +8,177 @@
 </head>
 <body class="video-background-body"> 
     
-    <video autoplay muted loop id="background-video">
-        <source src="/video/poke-ball-moewalls-com.mp4" type="video/mp4"> 
-        Tu navegador no soporta el tag de video.
-    </video>
-    <h1 id="nombre"></h1>
-    <h3 id="numero"></h3>
-    <img id="img" alt="">
-    <input id="pok" type="text" placeholder="Escriba el nombre o numero de pokemon">
-    <button onclick="traer()">Buscar</button>
+<video autoplay muted loop id="background-video">
+ <source src="video/hilda-and-tepig-watching-castelia-city-pokemon-pixel-moewalls-com.mp4" type="video/mp4"> 
+</video>
+
+    <div class="pokedex-container"> <div class="pokedex-border-glow"> <div class="pokedex-card">
+                <div class="card-corner top-left"></div>
+                <div class="card-corner top-right"></div>
+                <div class="c ard-corner bottom-left"></div>
+                <div class="card-corner bottom-right"></div>
+
+                <div class="search-and-header">
+                    <div class="pokedex-title"> POKÉDEX-CARD</div>
+                    <div class="search-container">
+                        <input id="pok" type="text" placeholder="Escribe nombre o número de Pokémon...">
+                        <button onclick="traer()">Buscar</button>
+                    </div>
+
+                    <header class="card-header">
+                        <div class="poke-ball-design">
+                            <img id="img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Imagen del Pokémon" class="pokemon-image-display">
+                        </div>
+                        <div class="number-and-name-display">
+                            <span id="numero" class="pokemon-number-display">#???</span>
+                            <h1 id="nombre">Buscar un Pokémon</h1>
+                        </div>
+                    </header>
+                </div>
+
+                <div class="main-info-grid">
+                    <section class="section identity">
+                        <h3 class="section-title">IDENTITY</h3>
+                        <div class="identity-content">
+                            <div><span>Name:</span><span id="name-api">N/A</span></div>
+                            <div><span>Pokedex No.:</span><span id="number-api">N/A</span></div>
+                            <div><span>Height:</span><span id="height-api">N/A</span></div>
+                            <div><span>Weight:</span><span id="weight-api">N/A</span></div>
+                        </div>
+                    </section>
+
+                    <section class="section elemental-class">
+                        <h3 class="section-title">ELEMENTAL CLASS</h3>
+                        <div class="elemental-content">
+                            <div><span>Type 1:</span><span id="type1-api" class="type">N/A</span></div>
+                            <div><span>Type 2:</span><span id="type2-api" class="type">N/A</span></div>
+                            <div><span>Types:</span><span id="types-api">N/A</span></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="stats-and-advanced-grid">
+                    <section class="section stats">
+                        <h3 class="section-title">STATS</h3>
+                        <ul class="stats-list">
+                            <li><div class="stat-name">HP</div><div class="stat-bar-wrapper"><span id="stat-hp" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-hp" class="stat-bar"></div></div></div></li>
+                            <li><div class="stat-name">Attack</div><div class="stat-bar-wrapper"><span id="stat-attack" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-attack" class="stat-bar"></div></div></div></li>
+                            <li><div class="stat-name">Defense</div><div class="stat-bar-wrapper"><span id="stat-defense" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-defense" class="stat-bar"></div></div></div></li>
+                            <li><div class="stat-name">Sp. Attack</div><div class="stat-bar-wrapper"><span id="stat-sp-attack" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-sp-attack" class="stat-bar"></div></div></div></li>
+                            <li><div class="stat-name">Sp. Defense</div><div class="stat-bar-wrapper"><span id="stat-sp-defense" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-sp-defense" class="stat-bar"></div></div></div></li>
+                            <li><div class="stat-name">Speed</div><div class="stat-bar-wrapper"><span id="stat-speed" class="stat-value">N/A</span><div class="stat-bar-container"><div id="bar-speed" class="stat-bar"></div></div></div></li>
+                        </ul>
+                    </section>
+
+                    <section class="section advanced-details">
+                        <h3 class="section-title">ADV. DETAILS</h3>
+                        <div class="advanced-table">
+                            <div><span>Category A</span><span>Value 1</span></div>
+                            <div><span>Category B</span><span>Value 2</span></div>
+                            <div><span>Category C</span><span>Value 3</span></div>
+                            <div><span>Category D</span><span>Value 4</span></div>
+                            <div><span>Category E</span><span>Value 5</span></div>
+                            <div><span>Category F</span><span>Value 6</span></div>
+                        </div>
+                    </section>
+                </div>
+
+            </div>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        async function traer(){
-            let pokemon = document.getElementById("pok").value
-            let res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
-            console.log(res);
-            document.getElementById("nombre").textContent = res.data.name
-            document.getElementById("numero").textContent = `#${res.data.id}` // Añadido el numeral
-            document.getElementById("img").src = res.data.sprites.other["official-artwork"]["front_default"]
+        // Tu función traer() actualizada aquí
+        async function traer() {
+            let pokemonInput = document.getElementById("pok").value.toLowerCase(); 
+
+            try {
+                let res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonInput}`);
+                const data = res.data;
+                console.log(data);
+
+                // --- I. Actualización de Identidad y Encabezado ---
+
+                document.getElementById("nombre").textContent = data.name.toUpperCase();
+                document.getElementById("numero").textContent = `#${data.id.toString().padStart(3, '0')}`;
+
+                const pokemonImage = document.getElementById("img");
+                pokemonImage.src = data.sprites.other["official-artwork"]["front_default"];
+                pokemonImage.style.display = "block"; 
+
+                document.getElementById("name-api").textContent = data.name.toUpperCase();
+                document.getElementById("number-api").textContent = `#${data.id}`;
+                document.getElementById("height-api").textContent = `${(data.height / 10).toFixed(1)} m`;
+                document.getElementById("weight-api").textContent = `${(data.weight / 10).toFixed(1)} kg`;
+
+                // Tipos (lista de todos)
+                const typesList = data.types.map(typeInfo => typeInfo.type.name.toUpperCase()).join(" / ");
+                document.getElementById("types-api").textContent = typesList;
+
+                // Tipo Primario
+                document.getElementById("type1-api").textContent = data.types[0].type.name.toUpperCase();
+                
+                // Tipo Secundario (manejo si solo tiene un tipo)
+                const type2Element = document.getElementById("type2-api");
+                if (data.types.length > 1) {
+                    type2Element.textContent = data.types[1].type.name.toUpperCase();
+                } else {
+                    type2Element.textContent = "N/A";
+                }
+                
+                // --- III. Actualización de Estadísticas Base con Barras ---
+                
+                const stats = data.stats;
+                const maxStatValue = 255; 
+
+                const statMap = [
+                    { id: "hp", value: stats[0].base_stat },
+                    { id: "attack", value: stats[1].base_stat },
+                    { id: "defense", value: stats[2].base_stat },
+                    { id: "sp-attack", value: stats[3].base_stat },
+                    { id: "sp-defense", value: stats[4].base_stat },
+                    { id: "speed", value: stats[5].base_stat }
+                ];
+
+                statMap.forEach(stat => {
+                    const percentage = (stat.value / maxStatValue) * 100;
+                    document.getElementById(`stat-${stat.id}`).textContent = stat.value;
+                    document.getElementById(`bar-${stat.id}`).style.width = `${percentage}%`;
+                });
+
+                // Resetear "Advanced Details" si no hay datos específicos de API
+                // Por ahora, estos datos son estáticos ya que la PokeAPI no da algo directo para ellos.
+                const advancedDetails = document.querySelector(".advanced-table");
+                if (advancedDetails) {
+                    // Puedes llenar esto con datos de otras APIs o calculados si lo deseas
+                    // Por ahora, solo asegúrate de que no se muestren datos incorrectos.
+                }
+
+
+            } catch (error) {
+                console.error("Error al buscar el Pokémon:", error);
+                document.getElementById("nombre").textContent = "¡Pokémon No Encontrado!";
+                document.getElementById("numero").textContent = "#???";
+                document.getElementById("img").src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // Imagen transparente
+                document.getElementById("img").style.display = "block"; // Asegurar que el img placeholder esté visible
+
+                const elementsToReset = [
+                    "name-api", "number-api", "height-api", "weight-api", "types-api",
+                    "type1-api", "type2-api",
+                    "stat-hp", "stat-attack", "stat-defense", "stat-sp-attack", "stat-sp-defense", "stat-speed"
+                ];
+                elementsToReset.forEach(id => {
+                    document.getElementById(id).textContent = "N/A";
+                });
+                
+                const barElementsToReset = [
+                    "bar-hp", "bar-attack", "bar-defense", "bar-sp-attack", "bar-sp-defense", "bar-speed"
+                ];
+                barElementsToReset.forEach(id => {
+                    document.getElementById(id).style.width = "0%";
+                });
+            }
         }
     </script>
 </body>
