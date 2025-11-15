@@ -1,0 +1,47 @@
+ /* --- Estilos para Video de Fondo --- */
+#background-video {
+    /* Posiciona el video de forma fija en la esquina superior izquierda */
+    position: fixed;
+    top: 0;
+    left: 0;
+    
+    /* Asegura que cubra al menos el 100% del viewport */
+    min-width: 100%; 
+    min-height: 100%;
+    
+    /* Asegura que el video cubra completamente el viewport sin distorsionarse, 
+       recortando los bordes si es necesario. */
+    object-fit: cover; 
+    
+    /* Lo envía al fondo, detrás de todo el contenido (h1, input, etc.) */
+    z-index: -100; 
+    
+    /* Mantiene la proporción del video */
+    width: auto;
+    height: auto;
+}
+
+/* Opcional: Estilo para mejorar la legibilidad del contenido sobre el video */
+.video-background-body {
+    /* Usamos una capa semi-transparente para oscurecer el video y mejorar el contraste */
+    background-color: rgba(0, 0, 0, 0.6); 
+    color: white; /* Asegura que el texto sea blanco */
+    
+    /* Asegura que el contenido esté por encima del video */
+    position: relative;
+    z-index: 0; 
+}
+
+/* Estilos básicos para el contenido de la Pokédex (para que se vea centrado y por encima) */
+body > * {
+    position: relative;
+    z-index: 1; /* Asegura que estos elementos estén encima del body background */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+    font-family: sans-serif;
+}
