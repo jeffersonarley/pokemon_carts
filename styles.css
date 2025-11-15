@@ -331,6 +331,65 @@ content: '';
 #bar-speed { background-color: #ffa500; }
 
 /* ------------------------------------------- */
+/* 9. Estilos de Debilidades (Weaknesses)      */
+/* ------------------------------------------- */
+
+.weaknesses-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Aumenté el espacio entre etiquetas */
+    padding-top: 5px;
+    min-height: 50px; 
+    align-items: flex-start;
+}
+
+.type-tag {
+    /* Fondo se mantiene el color del tipo específico */
+    padding: 6px 12px; /* Más padding para que se vea más como un cuadro */
+    border-radius: 8px; /* Aumentado el radio para una apariencia más suave */
+    font-size: 0.9em;
+    font-weight: bold;
+    text-transform: uppercase;
+    
+    /* Añadidos estilos para el borde y sombra de neón */
+    border: 2px solid var(--text-color); /* Borde blanco para contraste */
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Sombra suave */
+    
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.type-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px currentColor; /* Sombra que toma el color del fondo de la etiqueta */
+}
+
+.placeholder-text {
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+/* Colores temáticos para las etiquetas de tipo (se mantienen) */
+.type-tag.type-fire { background-color: #FD7D24; color: #fff;}
+.type-tag.type-water { background-color: #4592C4; color: #fff;}
+.type-tag.type-grass { background-color: #9BCC50; color: #212121;}
+.type-tag.type-electric { background-color: #F7D02C; color: #212121;}
+.type-tag.type-ice { background-color: #98D8D8; color: #212121;}
+.type-tag.type-fighting { background-color: #C03028; color: #fff;}
+.type-tag.type-poison { background-color: #A33EA1; color: #fff;}
+.type-tag.type-ground { background-color: #E0C068; color: #212121;}
+.type-tag.type-flying { background-color: #A890F0; color: #fff;}
+.type-tag.type-psychic { background-color: #F85888; color: #fff;}
+.type-tag.type-bug { background-color: #A8B820; color: #fff;}
+.type-tag.type-rock { background-color: #B8A038; color: #fff;}
+.type-tag.type-ghost { background-color: #705898; color: #fff;}
+.type-tag.type-steel { background-color: #B8B8D0; color: #212121;}
+.type-tag.type-dragon { background-color: #7038F8; color: #fff;}
+.type-tag.type-dark { background-color: #705848; color: #fff;}
+.type-tag.type-fairy { background-color: #EE99AC; color: #fff;}
+.type-tag.type-normal { background-color: #A8A878; color: #212121;}
+
+/* ------------------------------------------- */
 /* 8. Responsive Design                        */
 /* ------------------------------------------- */
 

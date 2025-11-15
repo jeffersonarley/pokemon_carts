@@ -9,13 +9,13 @@
 <body class="video-background-body"> 
     
 <video autoplay muted loop id="background-video">
- <source src="video/hilda-and-tepig-watching-castelia-city-pokemon-pixel-moewalls-com.mp4" type="video/mp4"> 
+    <source src="video/hilda-and-tepig-watching-castelia-city-pokemon-pixel-moewalls-com.mp4" type="video/mp4"> 
 </video>
 
     <div class="pokedex-container"> <div class="pokedex-border-glow"> <div class="pokedex-card">
                 <div class="card-corner top-left"></div>
                 <div class="card-corner top-right"></div>
-                <div class="c ard-corner bottom-left"></div>
+                <div class="card-corner bottom-left"></div> 
                 <div class="card-corner bottom-right"></div>
 
                 <div class="search-and-header">
@@ -71,14 +71,9 @@
                     </section>
 
                     <section class="section advanced-details">
-                        <h3 class="section-title">ADV. DETAILS</h3>
-                        <div class="advanced-table">
-                            <div><span>Category A</span><span>Value 1</span></div>
-                            <div><span>Category B</span><span>Value 2</span></div>
-                            <div><span>Category C</span><span>Value 3</span></div>
-                            <div><span>Category D</span><span>Value 4</span></div>
-                            <div><span>Category E</span><span>Value 5</span></div>
-                            <div><span>Category F</span><span>Value 6</span></div>
+                        <h3 class="section-title">WEAKNESSES (X2 / X4)</h3>
+                        <div class="weaknesses-container" id="weaknesses-api">
+                            <span class="placeholder-text">N/A</span>
                         </div>
                     </section>
                 </div>
@@ -89,11 +84,60 @@
     
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        // Tu función traer() actualizada aquí
+        /**
+         * Función auxiliar para obtener y consolidar las debilidades
+         * Es necesaria ya que la lógica de daño está en el endpoint /type/{name}
+         */
+        async function getWeaknesses(types) {
+            // Un mapa para almacenar el multiplicador de daño por cada tipo
+            const damageMultipliers = {};
+
+            // 1. Iterar sobre cada tipo del Pokémon (uno o dos)
+            for (const typeInfo of types) {
+                const typeName = typeInfo.type.name;
+                
+                // 2. Llamar al endpoint del tipo para obtener la matriz de daño
+                const typeRes = await axios.get(`https://pokeapi.co/api/v2/type/${typeName}`);
+                const damageRelations = typeRes.data.damage_relations;
+
+                // 3. Procesar las relaciones de daño y calcular el multiplicador combinado
+                
+                // Tipos a los que este Pokémon recibe 2x (double_damage_from)
+                damageRelations.double_damage_from.forEach(relation => {
+                    const incomingType = relation.name;
+                    // Si ya existe, multiplica por 2 (para casos de doble tipo como Charizard: Fire x2 * Flying x2 = Fire x4)
+                    damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 2; 
+                });
+
+                // Tipos a los que este Pokémon recibe 0.5x (half_damage_from)
+                damageRelations.half_damage_from.forEach(relation => {
+                    const incomingType = relation.name;
+                    damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 0.5;
+                });
+
+                // Tipos a los que este Pokémon recibe 0x (no_damage_from)
+                damageRelations.no_damage_from.forEach(relation => {
+                    const incomingType = relation.name;
+                    damageMultipliers[incomingType] = 0;
+                });
+            }
+
+            // 4. Filtrar y devolver solo los tipos con multiplicador 2 o 4 (Debilidades)
+            const weaknesses = Object.entries(damageMultipliers)
+                .filter(([type, multiplier]) => multiplier >= 2)
+                .map(([type, multiplier]) => ({ type: type.toUpperCase(), multiplier }));
+
+            return weaknesses;
+        }
+
         async function traer() {
             let pokemonInput = document.getElementById("pok").value.toLowerCase(); 
+            const weaknessesContainer = document.getElementById("weaknesses-api");
 
             try {
+                // Limpiar y mostrar estado de carga
+                weaknessesContainer.innerHTML = '<span class="placeholder-text">Cargando...</span>';
+
                 let res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonInput}`);
                 const data = res.data;
                 console.log(data);
@@ -104,7 +148,8 @@
                 document.getElementById("numero").textContent = `#${data.id.toString().padStart(3, '0')}`;
 
                 const pokemonImage = document.getElementById("img");
-                pokemonImage.src = data.sprites.other["official-artwork"]["front_default"];
+                // Usar 'front_default' de 'official-artwork' que tiene mejor resolución
+                pokemonImage.src = data.sprites.other["official-artwork"]["front_default"]; 
                 pokemonImage.style.display = "block"; 
 
                 document.getElementById("name-api").textContent = data.name.toUpperCase();
@@ -112,22 +157,15 @@
                 document.getElementById("height-api").textContent = `${(data.height / 10).toFixed(1)} m`;
                 document.getElementById("weight-api").textContent = `${(data.weight / 10).toFixed(1)} kg`;
 
-                // Tipos (lista de todos)
+                // Tipos
                 const typesList = data.types.map(typeInfo => typeInfo.type.name.toUpperCase()).join(" / ");
                 document.getElementById("types-api").textContent = typesList;
-
-                // Tipo Primario
                 document.getElementById("type1-api").textContent = data.types[0].type.name.toUpperCase();
                 
-                // Tipo Secundario (manejo si solo tiene un tipo)
                 const type2Element = document.getElementById("type2-api");
-                if (data.types.length > 1) {
-                    type2Element.textContent = data.types[1].type.name.toUpperCase();
-                } else {
-                    type2Element.textContent = "N/A";
-                }
+                type2Element.textContent = data.types.length > 1 ? data.types[1].type.name.toUpperCase() : "N/A";
                 
-                // --- III. Actualización de Estadísticas Base con Barras ---
+                // --- II. Actualización de Estadísticas Base con Barras ---
                 
                 const stats = data.stats;
                 const maxStatValue = 255; 
@@ -146,13 +184,24 @@
                     document.getElementById(`stat-${stat.id}`).textContent = stat.value;
                     document.getElementById(`bar-${stat.id}`).style.width = `${percentage}%`;
                 });
+                
+                // --- III. Calcular y mostrar Debilidades ---
+                const weaknesses = await getWeaknesses(data.types);
 
-                // Resetear "Advanced Details" si no hay datos específicos de API
-                // Por ahora, estos datos son estáticos ya que la PokeAPI no da algo directo para ellos.
-                const advancedDetails = document.querySelector(".advanced-table");
-                if (advancedDetails) {
-                    // Puedes llenar esto con datos de otras APIs o calculados si lo deseas
-                    // Por ahora, solo asegúrate de que no se muestren datos incorrectos.
+                weaknessesContainer.innerHTML = ''; // Limpiar el contenedor de debilidades
+                
+                if (weaknesses.length === 0) {
+                    weaknessesContainer.innerHTML = '<span class="placeholder-text">¡Sin Debilidades X2 o X4!</span>';
+                } else {
+                    weaknesses.forEach(weakness => {
+                        const tag = document.createElement('span');
+                        tag.classList.add('type-tag');
+                        // Mostrar el tipo y el multiplicador (ej. FIRE x2)
+                        tag.textContent = `${weakness.type} x${weakness.multiplier}`; 
+                        // Añadir clase para CSS (ej. type-fire)
+                        tag.classList.add(`type-${weakness.type.toLowerCase()}`); 
+                        weaknessesContainer.appendChild(tag);
+                    });
                 }
 
 
@@ -160,8 +209,7 @@
                 console.error("Error al buscar el Pokémon:", error);
                 document.getElementById("nombre").textContent = "¡Pokémon No Encontrado!";
                 document.getElementById("numero").textContent = "#???";
-                document.getElementById("img").src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // Imagen transparente
-                document.getElementById("img").style.display = "block"; // Asegurar que el img placeholder esté visible
+                document.getElementById("img").src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; 
 
                 const elementsToReset = [
                     "name-api", "number-api", "height-api", "weight-api", "types-api",
@@ -178,6 +226,9 @@
                 barElementsToReset.forEach(id => {
                     document.getElementById(id).style.width = "0%";
                 });
+
+                // Resetear debilidades
+                weaknessesContainer.innerHTML = '<span class="placeholder-text">N/A</span>';
             }
         }
     </script>
