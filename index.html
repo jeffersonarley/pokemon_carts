@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokédex API</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Pokédex API - Estilo Neón</title>
+    <link rel="stylesheet" href="styles.css"> 
 </head>
 <body class="video-background-body"> 
     
@@ -84,45 +84,47 @@
     
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        /**
-         * Función auxiliar para obtener y consolidar las debilidades
-         * Es necesaria ya que la lógica de daño está en el endpoint /type/{name}
-         */
-        async function getWeaknesses(types) {
-            // Un mapa para almacenar el multiplicador de daño por cada tipo
-            const damageMultipliers = {};
+        
+        // =======================================================
+        // 🛠️ MAPA DE COLORES PARA EL FONDO DINÁMICO DE LA POKEBALL
+        // =======================================================
+        const typeColors = {
+            normal: '#A8A878', fire: '#FD7D24', water: '#4592C4', grass: '#9BCC50', 
+            electric: '#F7D02C', ice: '#98D8D8', fighting: '#C03028', poison: '#A33EA1', 
+            ground: '#E0C068', flying: '#A890F0', psychic: '#F85888', bug: '#A8B820', 
+            rock: '#B8A038', ghost: '#705898', dragon: '#7038F8', dark: '#705848', 
+            steel: '#B8B8D0', fairy: '#EE99AC'
+        };
 
-            // 1. Iterar sobre cada tipo del Pokémon (uno o dos)
+        // Función auxiliar para obtener y consolidar las debilidades
+        async function getWeaknesses(types) {
+            const damageMultipliers = {};
             for (const typeInfo of types) {
                 const typeName = typeInfo.type.name;
                 
-                // 2. Llamar al endpoint del tipo para obtener la matriz de daño
-                const typeRes = await axios.get(`https://pokeapi.co/api/v2/type/${typeName}`);
-                const damageRelations = typeRes.data.damage_relations;
+                try {
+                    const typeRes = await axios.get(`https://pokeapi.co/api/v2/type/${typeName}`);
+                    const damageRelations = typeRes.data.damage_relations;
 
-                // 3. Procesar las relaciones de daño y calcular el multiplicador combinado
-                
-                // Tipos a los que este Pokémon recibe 2x (double_damage_from)
-                damageRelations.double_damage_from.forEach(relation => {
-                    const incomingType = relation.name;
-                    // Si ya existe, multiplica por 2 (para casos de doble tipo como Charizard: Fire x2 * Flying x2 = Fire x4)
-                    damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 2; 
-                });
+                    damageRelations.double_damage_from.forEach(relation => {
+                        const incomingType = relation.name;
+                        damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 2; 
+                    });
 
-                // Tipos a los que este Pokémon recibe 0.5x (half_damage_from)
-                damageRelations.half_damage_from.forEach(relation => {
-                    const incomingType = relation.name;
-                    damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 0.5;
-                });
+                    damageRelations.half_damage_from.forEach(relation => {
+                        const incomingType = relation.name;
+                        damageMultipliers[incomingType] = (damageMultipliers[incomingType] || 1) * 0.5;
+                    });
 
-                // Tipos a los que este Pokémon recibe 0x (no_damage_from)
-                damageRelations.no_damage_from.forEach(relation => {
-                    const incomingType = relation.name;
-                    damageMultipliers[incomingType] = 0;
-                });
+                    damageRelations.no_damage_from.forEach(relation => {
+                        const incomingType = relation.name;
+                        damageMultipliers[incomingType] = 0;
+                    });
+                } catch (e) {
+                    console.error(`Error al obtener datos para el tipo: ${typeName}`, e);
+                }
             }
 
-            // 4. Filtrar y devolver solo los tipos con multiplicador 2 o 4 (Debilidades)
             const weaknesses = Object.entries(damageMultipliers)
                 .filter(([type, multiplier]) => multiplier >= 2)
                 .map(([type, multiplier]) => ({ type: type.toUpperCase(), multiplier }));
@@ -130,25 +132,58 @@
             return weaknesses;
         }
 
+        // Función auxiliar para limpiar clases CSS de tipo (ej: "type-fire")
+        function cleanTypeClasses(element) {
+            const classes = element.className.split(' ');
+            const typeClasses = classes.filter(cls => !cls.startsWith('type-'));
+            element.className = typeClasses.join(' ');
+        }
+
+
         async function traer() {
             let pokemonInput = document.getElementById("pok").value.toLowerCase(); 
             const weaknessesContainer = document.getElementById("weaknesses-api");
-
+            const pokeBallElement = document.querySelector('.poke-ball-design');
+            
             try {
-                // Limpiar y mostrar estado de carga
+                // Limpiar clases y estilos antes de la carga
+                cleanTypeClasses(document.getElementById("type1-api"));
+                cleanTypeClasses(document.getElementById("type2-api"));
                 weaknessesContainer.innerHTML = '<span class="placeholder-text">Cargando...</span>';
+                pokeBallElement.style.background = 'none'; // Limpia el fondo anterior
 
                 let res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonInput}`);
                 const data = res.data;
-                console.log(data);
+                
+                // =======================================================
+                // 1. Lógica del Fondo Dinámico de la Pokeball (CON DESVANECIDO)
+                // =======================================================
+                const typeNames = data.types.map(typeInfo => typeInfo.type.name.toLowerCase());
+                let backgroundStyle = '';
 
-                // --- I. Actualización de Identidad y Encabezado ---
-
+                if (typeNames.length === 1) {
+                    // Un tipo: color sólido
+                    const color = typeColors[typeNames[0]];
+                    backgroundStyle = color; 
+                } else if (typeNames.length >= 2) {
+                    // Dos o más tipos: degradado SUAVE (zona de desvanecido del 40% al 60%)
+                    const color1 = typeColors[typeNames[0]];
+                    const color2 = typeColors[typeNames[1]];
+                    
+                    backgroundStyle = `linear-gradient(to bottom, ${color1} 0%, ${color1} 40%, ${color2} 60%, ${color2} 100%)`;
+                }
+                
+                pokeBallElement.style.background = backgroundStyle;
+                pokeBallElement.style.border = `5px solid var(--primary-blue)`; // Re-aplicar el borde neón
+                
+                
+                // =======================================================
+                // 2. Actualización de Identidad, Tipos y Encabezado
+                // =======================================================
                 document.getElementById("nombre").textContent = data.name.toUpperCase();
                 document.getElementById("numero").textContent = `#${data.id.toString().padStart(3, '0')}`;
 
                 const pokemonImage = document.getElementById("img");
-                // Usar 'front_default' de 'official-artwork' que tiene mejor resolución
                 pokemonImage.src = data.sprites.other["official-artwork"]["front_default"]; 
                 pokemonImage.style.display = "block"; 
 
@@ -157,16 +192,28 @@
                 document.getElementById("height-api").textContent = `${(data.height / 10).toFixed(1)} m`;
                 document.getElementById("weight-api").textContent = `${(data.weight / 10).toFixed(1)} kg`;
 
-                // Tipos
-                const typesList = data.types.map(typeInfo => typeInfo.type.name.toUpperCase()).join(" / ");
+                // Tipos (separados por /)
+                const typesList = typeNames.map(name => name.toUpperCase()).join(" / ");
                 document.getElementById("types-api").textContent = typesList;
-                document.getElementById("type1-api").textContent = data.types[0].type.name.toUpperCase();
+
+                // Aplicar color al Type 1
+                const type1Element = document.getElementById("type1-api");
+                type1Element.textContent = typeNames[0].toUpperCase();
+                type1Element.classList.add(`type-${typeNames[0]}`); 
                 
+                // Aplicar color al Type 2
                 const type2Element = document.getElementById("type2-api");
-                type2Element.textContent = data.types.length > 1 ? data.types[1].type.name.toUpperCase() : "N/A";
+                if (data.types.length > 1) {
+                    type2Element.textContent = typeNames[1].toUpperCase();
+                    type2Element.classList.add(`type-${typeNames[1]}`); 
+                } else {
+                    type2Element.textContent = "N/A";
+                    cleanTypeClasses(type2Element); 
+                }
                 
-                // --- II. Actualización de Estadísticas Base con Barras ---
-                
+                // =======================================================
+                // 3. Actualización de Estadísticas Base con Barras
+                // =======================================================
                 const stats = data.stats;
                 const maxStatValue = 255; 
 
@@ -185,10 +232,12 @@
                     document.getElementById(`bar-${stat.id}`).style.width = `${percentage}%`;
                 });
                 
-                // --- III. Calcular y mostrar Debilidades ---
+                // =======================================================
+                // 4. Calcular y mostrar Debilidades
+                // =======================================================
                 const weaknesses = await getWeaknesses(data.types);
 
-                weaknessesContainer.innerHTML = ''; // Limpiar el contenedor de debilidades
+                weaknessesContainer.innerHTML = ''; 
                 
                 if (weaknesses.length === 0) {
                     weaknessesContainer.innerHTML = '<span class="placeholder-text">¡Sin Debilidades X2 o X4!</span>';
@@ -196,9 +245,7 @@
                     weaknesses.forEach(weakness => {
                         const tag = document.createElement('span');
                         tag.classList.add('type-tag');
-                        // Mostrar el tipo y el multiplicador (ej. FIRE x2)
                         tag.textContent = `${weakness.type} x${weakness.multiplier}`; 
-                        // Añadir clase para CSS (ej. type-fire)
                         tag.classList.add(`type-${weakness.type.toLowerCase()}`); 
                         weaknessesContainer.appendChild(tag);
                     });
@@ -207,19 +254,28 @@
 
             } catch (error) {
                 console.error("Error al buscar el Pokémon:", error);
+                
+                // Reset de todos los elementos en caso de error
                 document.getElementById("nombre").textContent = "¡Pokémon No Encontrado!";
                 document.getElementById("numero").textContent = "#???";
                 document.getElementById("img").src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; 
-
+                
+                pokeBallElement.style.background = 'none';
+                
                 const elementsToReset = [
                     "name-api", "number-api", "height-api", "weight-api", "types-api",
-                    "type1-api", "type2-api",
                     "stat-hp", "stat-attack", "stat-defense", "stat-sp-attack", "stat-sp-defense", "stat-speed"
                 ];
                 elementsToReset.forEach(id => {
                     document.getElementById(id).textContent = "N/A";
                 });
                 
+                cleanTypeClasses(document.getElementById("type1-api"));
+                cleanTypeClasses(document.getElementById("type2-api"));
+                document.getElementById("type1-api").textContent = "N/A";
+                document.getElementById("type2-api").textContent = "N/A";
+                
+
                 const barElementsToReset = [
                     "bar-hp", "bar-attack", "bar-defense", "bar-sp-attack", "bar-sp-defense", "bar-speed"
                 ];
@@ -227,7 +283,6 @@
                     document.getElementById(id).style.width = "0%";
                 });
 
-                // Resetear debilidades
                 weaknessesContainer.innerHTML = '<span class="placeholder-text">N/A</span>';
             }
         }
